@@ -1,1 +1,1687 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5510 Emeklilik Hesaplayıcı v0.6</title>
 
+<style>
+:root{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:#f5f7fa;
+  color:#18212b;
+}
+
+header{
+  background:#17212b;
+  color:white;
+  padding:22px 18px;
+}
+
+header h1{
+  margin:0 0 6px;
+  font-size:25px;
+}
+
+header p{
+  margin:0;
+  opacity:.8;
+}
+
+main{
+  max-width:1000px;
+  margin:20px auto;
+  padding:0 14px;
+}
+
+.card{
+  background:white;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 3px 14px rgba(0,0,0,.08);
+}
+
+h2{
+  margin-top:0;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+label{
+  display:block;
+  font-weight:600;
+  margin-bottom:7px;
+}
+
+input,
+select,
+button{
+  width:100%;
+  padding:13px;
+  border-radius:10px;
+  border:1px solid #ccd3da;
+  font:inherit;
+}
+
+input:focus,
+select:focus{
+  outline:2px solid #b9dcf7;
+  border-color:#1677c8;
+}
+
+button{
+  background:#17212b;
+  color:white;
+  border:0;
+  cursor:pointer;
+  font-weight:600;
+}
+
+button.secondary{
+  background:#e9eef3;
+  color:#1677c8;
+}
+
+.buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:18px;
+}
+
+.result{
+  display:none;
+}
+
+.result.show{
+  display:block;
+}
+
+.result-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+
+.result-box{
+  background:#eef7ff;
+  border-radius:12px;
+  padding:18px;
+}
+
+.result-box.success{
+  background:#eef9f1;
+}
+
+.result-box.warn{
+  background:#fff5e6;
+}
+
+.big{
+  font-size:28px;
+  font-weight:700;
+  margin-top:4px;
+}
+
+.status{
+  padding:14px;
+  border-radius:10px;
+  font-weight:600;
+}
+
+.status.green{
+  background:#e9f8ee;
+  color:#176b35;
+}
+
+.status.yellow{
+  background:#fff5df;
+  color:#855a00;
+}
+
+.status.orange{
+  background:#fff0e5;
+  color:#9a4d00;
+}
+
+.status.red{
+  background:#fdecec;
+  color:#a32929;
+}
+
+.warning{
+  background:#fff5e6;
+  border-left:5px solid #f0a000;
+  padding:14px;
+  border-radius:8px;
+}
+
+.muted{
+  color:#68737d;
+  font-size:14px;
+}
+
+.record{
+  padding:12px;
+  margin-bottom:8px;
+  background:#f5f7fa;
+  border-radius:9px;
+  overflow:hidden;
+}
+
+.record button{
+  width:auto;
+  float:right;
+  padding:6px 10px;
+  background:#d9534f;
+}
+
+.summary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:15px;
+}
+
+.summary-item{
+  background:#f5f7fa;
+  padding:12px;
+  border-radius:10px;
+}
+
+.summary-item strong{
+  display:block;
+  font-size:20px;
+  margin-top:3px;
+}
+
+hr{
+  border:0;
+  border-top:1px solid #e5e9ed;
+  margin:18px 0;
+}
+
+@media(max-width:650px){
+
+  .grid,
+  .buttons,
+  .result-grid,
+  .summary{
+    grid-template-columns:1fr;
+  }
+
+  header h1{
+    font-size:22px;
+  }
+
+  .big{
+    font-size:25px;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<h1>5510 Emeklilik Hesaplayıcı v0.6</h1>
+
+<p>
+Geliştirilmiş prototip • tarih, prim ve kayıt yönetimi
+</p>
+
+</header>
+
+<main>
+
+<!-- KİŞİSEL BİLGİLER -->
+
+<div class="card">
+
+<h2>Kişisel Bilgiler</h2>
+
+<div class="grid">
+
+<div>
+
+<label for="birth">
+Doğum tarihi
+</label>
+
+<input
+type="date"
+id="birth">
+
+</div>
+
+
+<div>
+
+<label for="gender">
+Cinsiyet
+</label>
+
+<select id="gender">
+
+<option value="male">
+Erkek
+</option>
+
+<option value="female">
+Kadın
+</option>
+
+</select>
+
+</div>
+
+
+<div>
+
+<label for="firstDate">
+İlk sigorta tarihi
+</label>
+
+<input
+type="date"
+id="firstDate">
+
+</div>
+
+
+<div>
+
+<label for="premium">
+Mevcut prim günü
+</label>
+
+<input
+type="number"
+id="premium"
+value="7200"
+min="0"
+step="1">
+
+</div>
+
+</div>
+
+<p class="muted">
+
+v0.6'da mevcut prim, borçlanma ve FHSZ
+ayrı gösterilir; toplam prim hesabı tek noktadan yapılır.
+
+</p>
+
+</div>
+
+
+<!-- PRİM KAYITLARI -->
+
+<div class="card">
+
+<h2>Prim Kayıtları</h2>
+
+<div class="grid">
+
+<div>
+
+<label for="year">
+Yıl
+</label>
+
+<input
+type="number"
+id="year"
+min="1900"
+max="2100"
+value="2026">
+
+</div>
+
+
+<div>
+
+<label for="days">
+Prim günü
+</label>
+
+<input
+type="number"
+id="days"
+min="0"
+max="365"
+value="30">
+
+</div>
+
+
+<div>
+
+<label for="pek">
+PEK (TL)
+</label>
+
+<input
+type="number"
+id="pek"
+min="0"
+step="0.01"
+value="100000">
+
+</div>
+
+</div>
+
+
+<div class="buttons">
+
+<button
+type="button"
+id="addRecord">
+
+Kaydı ekle
+
+</button>
+
+
+<button
+type="button"
+class="secondary"
+id="add2026">
+
+2026 örnek yılı ekle
+
+</button>
+
+</div>
+
+
+<button
+type="button"
+class="secondary"
+id="clearRecords"
+style="margin-top:12px">
+
+Kayıtları temizle
+
+</button>
+
+
+<div
+id="records"
+style="margin-top:15px">
+
+</div>
+
+
+<div class="summary">
+
+<div class="summary-item">
+
+Kayıt toplamı
+
+<strong id="recordDays">
+0
+</strong>
+
+gün
+
+</div>
+
+
+<div class="summary-item">
+
+Kayıt sayısı
+
+<strong id="recordCount">
+0
+</strong>
+
+</div>
+
+
+<div class="summary-item">
+
+Son kayıt yılı
+
+<strong id="lastYear">
+-
+</strong>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- EK BİLGİLER -->
+
+<div class="card">
+
+<h2>Ek Bilgiler</h2>
+
+<div class="grid">
+
+<div>
+
+<label for="borrowing">
+Borçlanma gün sayısı
+</label>
+
+<input
+type="number"
+id="borrowing"
+value="0"
+min="0"
+step="1">
+
+</div>
+
+
+<div>
+
+<label for="fhzs">
+FHSZ ilave gün sayısı
+</label>
+
+<input
+type="number"
+id="fhzs"
+value="0"
+min="0"
+step="1">
+
+</div>
+
+</div>
+
+<p class="muted">
+
+Bu alanlar prototipte toplam prim hesabına
+ayrı kalemler olarak eklenir.
+
+Gerçek FHSZ/borçlanma mevzuat hesabı değildir.
+
+</p>
+
+</div>
+
+
+<!-- BUTONLAR -->
+
+<div class="buttons">
+
+<button
+type="button"
+id="calculate">
+
+HESAPLA
+
+</button>
+
+
+<button
+type="button"
+class="secondary"
+id="demo">
+
+Demo veri yükle
+
+</button>
+
+</div>
+
+
+<!-- SONUÇ -->
+
+<div
+class="card result"
+id="result">
+
+<h2>
+Hesaplama Sonucu
+</h2>
+
+
+<div class="result-grid">
+
+
+<div class="result-box">
+
+<div>
+Toplam prim günü
+</div>
+
+<div
+class="big"
+id="totalDays">
+
+0
+
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div>
+Hedef prim günü
+</div>
+
+<div
+class="big"
+id="targetDays">
+
+7.200
+
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div>
+Eksik prim günü
+</div>
+
+<div
+class="big"
+id="remainingDays">
+
+0
+
+</div>
+
+</div>
+
+
+<div class="result-box">
+
+<div>
+Mevcut yaş
+</div>
+
+<div
+class="big"
+id="ageResult">
+
+-
+
+</div>
+
+</div>
+
+</div>
+
+
+<div
+class="result-box"
+style="margin-top:12px">
+
+<div>
+Yaşa göre durum
+</div>
+
+<div
+class="big"
+id="ageStatus">
+
+-
+
+</div>
+
+</div>
+
+
+<div
+class="result-box"
+style="margin-top:12px">
+
+<div>
+İlk sigorta tarihine göre geçen süre
+</div>
+
+<div
+class="big"
+id="insuranceDuration">
+
+-
+
+</div>
+
+</div>
+
+
+<div
+class="result-box"
+style="margin-top:12px">
+
+<div>
+Genel durum
+</div>
+
+<div
+class="status"
+id="status">
+
+-
+
+</div>
+
+</div>
+
+
+<hr>
+
+
+<p class="muted">
+
+Not: 7.200 gün burada prototip hedefi olarak
+kullanılır.
+
+Gerçek emeklilik hakkı; ilk sigortalılık tarihi,
+statü (4A/4B/4C), yaş, prim, özel durumlar ve
+yürürlükteki mevzuata göre ayrıca belirlenmelidir.
+
+</p>
+
+</div>
+
+
+<!-- UYARI -->
+
+<div class="card">
+
+<div class="warning">
+
+<strong>Önemli uyarı:</strong>
+
+Bu uygulama resmî SGK tahsis hesabı değildir.
+
+v0.6 teknik olarak geliştirilmiş bir prototiptir;
+mevzuata dayalı kesin emeklilik sonucu vermez.
+
+Kesin sonuç için SGK'nın resmî kayıt ve mevzuat
+bilgileri esas alınmalıdır.
+
+</div>
+
+</div>
+
+</main>
+
+
+<script>
+
+"use strict";
+
+
+/* ----------------------------------
+   VERİLER
+---------------------------------- */
+
+const records = [];
+
+const STORAGE_KEY =
+"emeklilik_hesaplayici_v06";
+
+
+/* ----------------------------------
+   KISA ID FONKSİYONU
+---------------------------------- */
+
+function $(id){
+
+  return document.getElementById(id);
+
+}
+
+
+/* ----------------------------------
+   SAYI FORMATLAMA
+---------------------------------- */
+
+function formatNumber(value){
+
+  return Number(value || 0)
+    .toLocaleString("tr-TR");
+
+}
+
+
+/* ----------------------------------
+   TARİH KONTROLÜ
+---------------------------------- */
+
+function validDate(value){
+
+  if(!value){
+
+    return null;
+
+  }
+
+  const d =
+    new Date(value + "T00:00:00");
+
+  if(Number.isNaN(d.getTime())){
+
+    return null;
+
+  }
+
+  return d;
+
+}
+
+
+/* ----------------------------------
+   YAŞ HESABI
+
+   Ay/gün karşılaştırması yapıldığı
+   için yalnızca yıl farkı kullanılmaz.
+---------------------------------- */
+
+function calculateAge(
+  birth,
+  today = new Date()
+){
+
+  let years =
+    today.getFullYear()
+    - birth.getFullYear();
+
+
+  const beforeBirthday =
+
+    today.getMonth()
+    < birth.getMonth()
+
+    ||
+
+    (
+      today.getMonth()
+      === birth.getMonth()
+
+      &&
+
+      today.getDate()
+      < birth.getDate()
+    );
+
+
+  if(beforeBirthday){
+
+    years--;
+
+  }
+
+
+  return Math.max(0,years);
+
+}
+
+
+/* ----------------------------------
+   TARİH FARKI
+
+   Tam yıl / ay / gün hesabı.
+---------------------------------- */
+
+function dateDifference(
+  start,
+  end = new Date()
+){
+
+  if(!start || start > end){
+
+    return null;
+
+  }
+
+
+  let years =
+    end.getFullYear()
+    - start.getFullYear();
+
+
+  let months =
+    end.getMonth()
+    - start.getMonth();
+
+
+  let days =
+    end.getDate()
+    - start.getDate();
+
+
+  if(days < 0){
+
+    months--;
+
+    const previousMonthLastDay =
+      new Date(
+        end.getFullYear(),
+        end.getMonth(),
+        0
+      ).getDate();
+
+    days += previousMonthLastDay;
+
+  }
+
+
+  if(months < 0){
+
+    years--;
+
+    months += 12;
+
+  }
+
+
+  return {
+    years,
+    months,
+    days
+  };
+
+}
+
+
+/* ----------------------------------
+   KAYITLARI GÖSTER
+---------------------------------- */
+
+function renderRecords(){
+
+  const box =
+    $("records");
+
+
+  if(records.length === 0){
+
+    box.innerHTML =
+      "<p class='muted'>" +
+      "Henüz prim kaydı eklenmedi." +
+      "</p>";
+
+  }
+
+  else{
+
+    box.innerHTML =
+
+      records.map((r,i)=>`
+
+        <div class="record">
+
+          <strong>${r.year}</strong>
+          —
+          ${formatNumber(r.days)} gün
+          —
+          ${formatNumber(r.pek)} TL
+
+          <button
+            type="button"
+            onclick="removeRecord(${i})">
+
+            Sil
+
+          </button>
+
+        </div>
+
+      `).join("");
+
+  }
+
+
+  const total =
+
+    records.reduce(
+      (sum,r)=>sum + r.days,
+      0
+    );
+
+
+  $("recordDays").textContent =
+    formatNumber(total);
+
+
+  $("recordCount").textContent =
+    formatNumber(records.length);
+
+
+  $("lastYear").textContent =
+
+    records.length
+
+      ? Math.max(
+          ...records.map(r=>r.year)
+        )
+
+      : "-";
+
+
+  saveState();
+
+}
+
+
+/* ----------------------------------
+   KAYIT EKLE
+---------------------------------- */
+
+function addRecord(
+  year,
+  days,
+  pek
+){
+
+  const y = Number(year);
+
+  const d = Number(days);
+
+  const p = Number(pek) || 0;
+
+
+  if(
+    !Number.isInteger(y)
+    ||
+    y < 1900
+    ||
+    y > 2100
+  ){
+
+    alert(
+      "Geçerli bir yıl giriniz."
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !Number.isFinite(d)
+    ||
+    d < 0
+    ||
+    d > 365
+  ){
+
+    alert(
+      "Prim günü 0 ile 365 arasında olmalıdır."
+    );
+
+    return;
+
+  }
+
+
+  records.push({
+
+    year:y,
+
+    days:d,
+
+    pek:p
+
+  });
+
+
+  renderRecords();
+
+}
+
+
+/* ----------------------------------
+   KAYIT SİL
+---------------------------------- */
+
+function removeRecord(index){
+
+  records.splice(index,1);
+
+  renderRecords();
+
+}
+
+
+window.removeRecord =
+  removeRecord;
+
+
+/* ----------------------------------
+   LOCAL STORAGE
+---------------------------------- */
+
+function saveState(){
+
+  const state = {
+
+    birth:
+      $("birth").value,
+
+    gender:
+      $("gender").value,
+
+    firstDate:
+      $("firstDate").value,
+
+    premium:
+      $("premium").value,
+
+    borrowing:
+      $("borrowing").value,
+
+    fhzs:
+      $("fhzs").value,
+
+    records:
+      records
+
+  };
+
+
+  localStorage.setItem(
+
+    STORAGE_KEY,
+
+    JSON.stringify(state)
+
+  );
+
+}
+
+
+/* ----------------------------------
+   KAYITLI VERİLERİ YÜKLE
+---------------------------------- */
+
+function loadState(){
+
+  try{
+
+    const raw =
+      localStorage.getItem(
+        STORAGE_KEY
+      );
+
+
+    if(!raw){
+
+      return;
+
+    }
+
+
+    const state =
+      JSON.parse(raw);
+
+
+    $("birth").value =
+      state.birth || "";
+
+
+    $("gender").value =
+      state.gender || "male";
+
+
+    $("firstDate").value =
+      state.firstDate || "";
+
+
+    $("premium").value =
+      state.premium ?? 7200;
+
+
+    $("borrowing").value =
+      state.borrowing ?? 0;
+
+
+    $("fhzs").value =
+      state.fhzs ?? 0;
+
+
+    records.length = 0;
+
+
+    if(Array.isArray(state.records)){
+
+      state.records.forEach(r=>{
+
+        if(
+
+          Number.isFinite(
+            Number(r.year)
+          )
+
+          &&
+
+          Number.isFinite(
+            Number(r.days)
+          )
+
+        ){
+
+          records.push({
+
+            year:
+              Number(r.year),
+
+            days:
+              Number(r.days),
+
+            pek:
+              Number(r.pek) || 0
+
+          });
+
+        }
+
+      });
+
+    }
+
+  }
+
+  catch(e){
+
+    console.warn(
+      "Kayıtlı veriler okunamadı.",
+      e
+    );
+
+  }
+
+}
+
+
+/* ----------------------------------
+   KAYIT EKLE BUTONU
+---------------------------------- */
+
+$("addRecord")
+.addEventListener(
+  "click",
+  ()=>{
+
+    addRecord(
+
+      $("year").value,
+
+      $("days").value,
+
+      $("pek").value
+
+    );
+
+  }
+);
+
+
+/* ----------------------------------
+   2026 ÖRNEK KAYDI
+---------------------------------- */
+
+$("add2026")
+.addEventListener(
+  "click",
+  ()=>{
+
+    addRecord(
+      2026,
+      30,
+      100000
+    );
+
+  }
+);
+
+
+/* ----------------------------------
+   KAYITLARI TEMİZLE
+---------------------------------- */
+
+$("clearRecords")
+.addEventListener(
+  "click",
+  ()=>{
+
+    if(
+
+      records.length
+
+      &&
+
+      !confirm(
+        "Tüm prim kayıtları silinsin mi?"
+      )
+
+    ){
+
+      return;
+
+    }
+
+
+    records.length = 0;
+
+    renderRecords();
+
+  }
+);
+
+
+/* ----------------------------------
+   DEMO VERİ
+---------------------------------- */
+
+$("demo")
+.addEventListener(
+  "click",
+  ()=>{
+
+    $("birth").value =
+      "1980-01-01";
+
+
+    $("firstDate").value =
+      "2000-01-01";
+
+
+    $("premium").value =
+      7200;
+
+
+    $("gender").value =
+      "male";
+
+
+    $("borrowing").value =
+      0;
+
+
+    $("fhzs").value =
+      0;
+
+
+    records.length = 0;
+
+
+    records.push(
+
+      {
+        year:2024,
+        days:360,
+        pek:75000
+      },
+
+      {
+        year:2025,
+        days:360,
+        pek:90000
+      },
+
+      {
+        year:2026,
+        days:30,
+        pek:100000
+      }
+
+    );
+
+
+    renderRecords();
+
+
+    $("result")
+      .classList
+      .remove("show");
+
+  }
+);
+
+
+/* ----------------------------------
+   OTOMATİK KAYDETME
+---------------------------------- */
+
+[
+  "birth",
+  "gender",
+  "firstDate",
+  "premium",
+  "borrowing",
+  "fhzs"
+
+]
+.forEach(id=>{
+
+  $(id)
+    .addEventListener(
+      "input",
+      saveState
+    );
+
+
+  $(id)
+    .addEventListener(
+      "change",
+      saveState
+    );
+
+});
+
+
+/* ----------------------------------
+   HESAPLAMA
+---------------------------------- */
+
+$("calculate")
+.addEventListener(
+  "click",
+  ()=>{
+
+    const birth =
+      validDate(
+        $("birth").value
+      );
+
+
+    const firstDate =
+      validDate(
+        $("firstDate").value
+      );
+
+
+    const premium =
+      Number(
+        $("premium").value
+      ) || 0;
+
+
+    const borrowing =
+      Number(
+        $("borrowing").value
+      ) || 0;
+
+
+    const fhzs =
+      Number(
+        $("fhzs").value
+      ) || 0;
+
+
+    /* DOĞUM TARİHİ */
+
+    if(!birth){
+
+      alert(
+        "Lütfen geçerli bir doğum tarihi giriniz."
+      );
+
+      return;
+
+    }
+
+
+    /* TOPLAM PRİM */
+
+    const total =
+      Math.max(
+        0,
+        premium
+        +
+        borrowing
+        +
+        fhzs
+      );
+
+
+    /* PROTOTİP HEDEFİ */
+
+    const target =
+      7200;
+
+
+    const remaining =
+      Math.max(
+        0,
+        target - total
+      );
+
+
+    const today =
+      new Date();
+
+
+    /* YAŞ */
+
+    const age =
+      calculateAge(
+        birth,
+        today
+      );
+
+
+    /* SİGORTALILIK SÜRESİ */
+
+    const duration =
+      dateDifference(
+        firstDate,
+        today
+      );
+
+
+    /* SONUÇLAR */
+
+    $("totalDays")
+      .textContent =
+      formatNumber(total);
+
+
+    $("targetDays")
+      .textContent =
+      formatNumber(target);
+
+
+    $("remainingDays")
+      .textContent =
+      formatNumber(remaining);
+
+
+    $("ageResult")
+      .textContent =
+      age + " yaş";
+
+
+    /* YAŞ DURUMU */
+
+    if(age >= 65){
+
+      $("ageStatus")
+        .textContent =
+        "65 yaş ve üzeri";
+
+    }
+
+    else{
+
+      $("ageStatus")
+        .textContent =
+        (65-age)
+        +
+        " yıl yaş farkı";
+
+    }
+
+
+    /* SİGORTALILIK SÜRESİ */
+
+    if(duration){
+
+      $("insuranceDuration")
+        .textContent =
+
+        duration.years
+        +
+        " yıl "
+
+        +
+        duration.months
+        +
+        " ay "
+
+        +
+        duration.days
+        +
+        " gün";
+
+    }
+
+    else if(
+      $("firstDate").value
+    ){
+
+      $("insuranceDuration")
+        .textContent =
+        "İlk sigorta tarihi doğum tarihinden önce olamaz.";
+
+    }
+
+    else{
+
+      $("insuranceDuration")
+        .textContent =
+        "İlk sigorta tarihi girilmedi.";
+
+    }
+
+
+    /* GENEL DURUM */
+
+    const status =
+      $("status");
+
+
+    status.className =
+      "status";
+
+
+    if(
+      remaining === 0
+      &&
+      age >= 65
+    ){
+
+      status.classList
+        .add("green");
+
+
+      status.textContent =
+        "Prototip kontrolünde prim hedefi ve 65 yaş eşiği tamamlanmış görünüyor.";
+
+    }
+
+    else if(
+      remaining === 0
+    ){
+
+      status.classList
+        .add("yellow");
+
+
+      status.textContent =
+        "Prim hedefi tamamlanmış görünüyor; yaş/mevzuat şartları ayrıca değerlendirilmelidir.";
+
+    }
+
+    else if(
+      age >= 65
+    ){
+
+      status.classList
+        .add("orange");
+
+
+      status.textContent =
+
+        "Prim hedefi için "
+        +
+        formatNumber(remaining)
+        +
+        " gün eksik görünüyor.";
+
+    }
+
+    else{
+
+      status.classList
+        .add("red");
+
+
+      status.textContent =
+
+        "Prim hedefi için "
+        +
+        formatNumber(remaining)
+        +
+        " gün eksik; yaş ve diğer şartlar da ayrıca değerlendirilmelidir.";
+
+    }
+
+
+    /* SONUCU GÖSTER */
+
+    $("result")
+      .classList
+      .add("show");
+
+
+    $("result")
+      .scrollIntoView({
+        behavior:"smooth",
+        block:"start"
+      });
+
+
+    saveState();
+
+  }
+);
+
+
+/* ----------------------------------
+   BAŞLANGIÇ
+---------------------------------- */
+
+loadState();
+
+renderRecords();
+
+</script>
+
+</body>
+</html>
