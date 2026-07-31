@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>5510 Emeklilik Hesaplayıcı v0.5</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;background:#f5f7fa;color:#18212b}
+header{background:#17212b;color:white;padding:24px 18px}
+main{max-width:1100px;margin:20px auto;padding:0 14px}
+.card{background:white;border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 2px 10px #00000010}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+label{font-weight:600;font-size:.93rem}
+input,select,button{font:inherit}
+input,select{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:10px;border:1px solid #cbd3dc;border-radius:8px}
+button{border:0;border-radius:9px;padding:11px 16px;cursor:pointer}
+.primary{background:#17212b;color:white}.secondary{background:#e9eef3}
+table{width:100%;border-collapse:collapse}.tablewrap{overflow:auto}
+th,td{padding:9px;border-bottom:1px solid #edf0f3;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.big{font-size:1.55rem;font-weight:800}
+.muted{color:#667482}.warn{background:#fff5d8;border-radius:9px;padding:12px;margin-top:12px}
+.ok{background:#eaf7ef;border-radius:9px;padding:12px;margin-top:12px}
+.error{background:#fdecec;border-radius:9px;padding:12px;margin-top:12px}
+.small{font-size:.82rem}
+.remove{background:#f3f4f6;padding:5px 9px}
+</style>
+</head>
+<body>
+<header>
+  <div style="font-size:.82rem;opacity:.8;margin-bottom:8px">Tek dosya web uygulaması · Safari / Chrome</div>
+  <h1 style="margin:0">5510 / 4-a Emeklilik Hesaplayıcı</h1>
+  <div style="margin-top:6px;opacity:.85">v0.5 çalışan prototip · 01.10.2008 sonrası ilk sigortalılar</div>
+</header>
+
+<main>
+<div class="card">
+<h2>Kişisel bilgiler</h2>
+<div class="grid">
+<label>Doğum tarihi<input id="birth" type="date" value="1970-01-01"></label>
+<label>İlk sigortalılık tarihi<input id="first" type="date" value="2008-10-01"></label>
+<label>Cinsiyet<select id="gender"><option value="E">Erkek</option><option value="K">Kadın</option></select></label>
+<label>Tahmini tahsis tarihi<input id="claim" type="date" value="2026-07-01"></label>
+</div>
+<div style="margin-top:12px">
+<label><input id="dependent" type="checkbox" style="width:auto;display:inline-block"> Bakmakla yükümlü eş/çocuk var</label>
+</div>
+</div>
+
+<div class="card">
+<h2>Hizmet ve PEK kayıtları</h2>
+<p class="muted small">Aylık kayıtları ekleyin. PEK tutarı ilgili ayın toplam prime esas kazancıdır.</p>
+<div class="grid">
+<label>Yıl<input id="ryear" type="number" value="2026"></label>
+<label>Ay<select id="rmonth"></select></label>
+<label>Prim günü<input id="rdays" type="number" min="0" max="30" value="30"></label>
+<label>PEK (TL)<input id="rpek" type="number" min="0" step="0.01" value="100000"></label>
+</div>
+<div class="actions">
+<button class="primary" onclick="addRecord()">Kaydı ekle</button>
+<button class="secondary" onclick="addYear2026()">2026 örnek yılı ekle</button>
+<button class="secondary" onclick="clearRecords()">Kayıtları temizle</button>
+</div>
+<div id="records"></div>
+</div>
+
+<div class="card">
+<h2>Ek bilgiler</h2>
+<div class="grid">
+<label>Borçlanma gün sayısı<input id="borrowed" type="number" min="0" value="0"></label>
+<label>FHSZ ilave gün sayısı<input id="fhsz" type="number" min="0" value="0"></label>
+</div>
+<p class="muted small">v0.5'te bu alanlar ayrı tutulur. FHSZ'nin özel yaş indirimi ve borçlanmanın özel PEK etkileri henüz otomatik uygulanmaz.</p>
+</div>
+
+<div class="actions">
+<button class="primary" onclick="calculate()">HESAPLA</button>
+<button class="secondary" onclick="loadDemo()">Demo veri yükle</button>
+</div>
+
+<div id="result"></div>
+
+<div class="card small muted">
+<strong>Uyarı:</strong> Bu uygulama v0.5 prototipidir. Resmî SGK tahsis hesabı değildir.
+Ek 19, ek ödeme, tarihsel PEK alt sınırları ve özel hizmetlerin tüm mevzuat
+etkileri üretim öncesinde resmî kaynaklarla doğrulanmalıdır.
+</div>
+</main>
+
+<script>
+const months=["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+const updateFactors={2008:1.1039,2009:1.0653,2010:1.0907,2011:1.13,2012:1.0682,2013:1.086,2014:1.0904,2015:1.1001,2016:1.094,2017:1.1414,2018:1.2108,2019:1.1211,2020:1.1514,2021:1.3938,2022:1.6595,2023:1.6612,2024:1.4534,2025:1.3197};
+const floors={2008:[[1,608.4],[7,638.7]],2009:[[1,666],[7,693]],2010:[[1,729],[7,760.5]],2011:[[1,796.5],[7,837]],2012:[[1,886.5],[7,940.5]],2013:[[1,978.6],[7,1021.5]],2014:[[1,1071],[7,1134]],2015:[[1,1201.5],[7,1273.5]],2016:[[1,1647],[7,1777.5]],2017:[[1,1777.5],[7,1777.5]],2018:[[1,2029.5],[7,2029.5]],2019:[[1,2558.4],[7,2558.4]],2020:[[1,2943],[7,2943]],2021:[[1,3577.5],[7,3577.5]],2022:[[1,5004],[7,6471]],2023:[[1,10008],[7,13414.5]],2024:[[1,20002.5],[7,20002.5]],2025:[[1,22104],[7,22104]],2026:[[1,33030],[7,33030]]};
+let records=[];
+for(let i=0;i<12;i++)rmonth.innerHTML+=`<option value="${i+1}">${months[i]}</option>`;
+
+function money(n){return Number(n).toLocaleString("tr-TR",{minimumFractionDigits:2,maximumFractionDigits:2})+" TL"}
+function factor(y,claim){if(y>=claim-1)return 1;let f=1;for(let x=y+1;x<claim;x++){if(updateFactors[x]===undefined)throw Error(x+" güncelleme katsayısı eksik");f*=updateFactors[x]}return f}
+function floorFor(y,m){let a=floors[y];if(!a)return null;let v=null;for(const [start,val] of a)if(m>=start)v=val;return v}
+function ageOn(b,d){let a=d.getFullYear()-b.getFullYear();if([d.getMonth(),d.getDate()]<[b.getMonth(),b.getDate()])a--;return a}
+function abo(days){return Math.min(days/360*.02,.90)}
+function req5400(firstYear){return ({2008:4600,2009:4700,2010:4800,2011:4900,2012:5000,2013:5100,2014:5200,2015:5300})[firstYear]||5400}
+function age7200(y,g){let b=[[2035,g==="K"?58:60],[2037,g==="K"?59:61],[2039,g==="K"?60:62],[2041,g==="K"?61:63],[2043,g==="K"?62:64],[2045,g==="K"?63:65],[2047,g==="K"?64:65]];return b.find(x=>y<=x[0])?.[1]||65}
+function age5400(y,g){let b=[[2035,g==="K"?61:63],[2037,g==="K"?62:64],[2039,g==="K"?63:65],[2041,g==="K"?64:65],[2043,65],[2045,65],[2047,65]];return b.find(x=>y<=x[0])?.[1]||65}
+function completion(required){let total=0;for(const r of [...records].sort((a,b)=>a.year-b.year||a.month-b.month)){total+=r.days;if(total>=required)return new Date(r.year,r.month,0)}return null}
+
+function addRecord(){
+let r={year:+ryear.value,month:+rmonth.value,days:+rdays.value,pek:+rpek.value};
+if(!r.year||r.month<1||r.month>12||r.days<0||r.days>30||r.pek<0)return alert("Kayıt bilgilerini kontrol edin.");
+records.push(r);renderRecords();
+}
+function addYear2026(){for(let m=1;m<=12;m++)records.push({year:2026,month:m,days:30,pek:100000});renderRecords()}
+function clearRecords(){records=[];renderRecords();result.innerHTML=""}
+function renderRecords(){
+if(!records.length){records.innerHTML="<p class='muted'>Henüz kayıt yok.</p>";return}
+let s="<div class='tablewrap'><table><tr><th>Yıl</th><th>Ay</th><th>Gün</th><th>PEK</th><th></th></tr>";
+records.forEach((r,i)=>s+=`<tr><td>${r.year}</td><td>${months[r.month-1]}</td><td>${r.days}</td><td>${money(r.pek)}</td><td><button class="remove" onclick="records.splice(${i},1);renderRecords()">Sil</button></td></tr>`);
+records=records.sort((a,b)=>a.year-b.year||a.month-b.month);s+="</table></div>";records.innerHTML=s;
+}
+function loadDemo(){records=[];for(let y=2008;y<=2026;y++)records.push({year:y,month:12,days:30,pek:30000+(y-2008)*8000});renderRecords();}
+
+function calculate(){
+try{
+const birth=new Date(birth.value), first=new Date(first.value), claimDate=new Date(claim.value), g=gender.value;
+if(first<new Date("2008-10-01"))throw Error("Bu v0.5 uygulaması 01.10.2008 sonrası ilk sigortalılar içindir.");
+if(!records.length)throw Error("En az bir hizmet kaydı girin.");
+const ordinaryDays=records.reduce((a,r)=>a+r.days,0), borrowed=+document.getElementById("borrowed").value||0, fhsz=+document.getElementById("fhsz").value||0, totalDays=ordinaryDays+borrowed+fhsz;
+let updated=0;for(const r of records)updated+=r.pek*factor(r.year,claimDate.getFullYear());
+const oak=updated/totalDays*30, ab=abo(totalDays), root=oak*ab;
+let fs=0,complete=true;for(const r of records){let fl=floorFor(r.year,r.month);if(fl===null){complete=false;break}fs+=(fl/30)*r.days*factor(r.year,claimDate.getFullYear())}
+let minOak=complete&&ordinaryDays?fs/ordinaryDays*30:null, minPension=minOak===null?null:minOak*(dependent.checked?.40:.35), m55=minPension===null?root:Math.max(root,minPension);
+let ek19=claimDate>=new Date("2026-07-01")?23552:0, before=Math.max(m55,ek19), addRate=before<=5000?.05:.04, add=before*addRate, bank=before+add;
+const c7200=completion(7200), r5400=req5400(first.getFullYear()), c5400=completion(r5400), a7200=c7200?age7200(c7200.getFullYear(),g):null, a5400=c5400?age5400(c5400.getFullYear(),g):null, currentAge=ageOn(birth,claimDate);
+let elig7200=!!(c7200&&currentAge>=a7200), elig5400=!!(c5400&&currentAge>=a5400);
+result.innerHTML=`<div class="card"><h2>Sonuç</h2>
+<div class="${elig7200||elig5400?'ok':'warn'}"><strong>${elig7200||elig5400?'Emeklilik şartları sağlanıyor':'Emeklilik şartları henüz sağlanmıyor'}</strong></div>
+<h3>Emeklilik koşulu</h3><table>
+<tr><th>7200 gün</th><td>${ordinaryDays+borrowed+fhsz}/7200 · ${c7200?c7200.toLocaleDateString("tr-TR"):"henüz tamamlanmadı"} · gerekli yaş: ${a7200??"-"} · ${elig7200?"Uygun":"Uygun değil"}</td></tr>
+<tr><th>5400 gün</th><td>${totalDays}/${r5400} · ${c5400?c5400.toLocaleDateString("tr-TR"):"henüz tamamlanmadı"} · gerekli yaş: ${a5400??"-"} · ${elig5400?"Uygun":"Uygun değil"}</td></tr>
+</table>
+<h3>Aylık hesabı</h3><table>
+<tr><th>Güncellenmiş kazanç</th><td>${money(updated)}</td></tr>
+<tr><th>Ortalama aylık kazanç</th><td>${money(oak)}</td></tr>
+<tr><th>ABO</th><td>%${(ab*100).toFixed(4)}</td></tr>
+<tr><th>Kök aylık</th><td>${money(root)}</td></tr>
+<tr><th>m.55 alt sınır aylığı</th><td>${minPension===null?"Hesaplanamadı":money(minPension)}</td></tr>
+<tr><th>m.55 sonrası aylık</th><td>${money(m55)}</td></tr>
+<tr><th>Ek 19</th><td>${money(ek19)}</td></tr>
+<tr><th>Ek ödeme oranı</th><td>%${(addRate*100).toFixed(0)}</td></tr>
+<tr><th>Ek ödeme</th><td>${money(add)}</td></tr>
+<tr><th>Tahmini banka ödemesi</th><td class="big">${money(bank)}</td></tr>
+</table>
+<div class="warn small">Bu sonuç v0.5 hesaplama modelidir. Borçlanma PEK'i ve FHSZ'nin özel yaş indirimi otomatik uygulanmamıştır; ek ödeme ve Ek 19 parametreleri ayrıca doğrulanmalıdır.</div>
+</div>`;
+}catch(e){result.innerHTML=`<div class="card error">${e.message}</div>`}
+}
+renderRecords();
+</script>
+</body>
+</html>
