@@ -1,1 +1,391 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5510 Emeklilik Hesaplayıcı</title>
 
+<style>
+:root{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:#f5f7fa;
+  color:#18212b;
+}
+header{
+  background:#17212b;
+  color:white;
+  padding:22px 18px;
+}
+header h1{
+  margin:0 0 6px;
+  font-size:25px;
+}
+header p{
+  margin:0;
+  opacity:.8;
+}
+main{
+  max-width:1000px;
+  margin:20px auto;
+  padding:0 14px;
+}
+.card{
+  background:white;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:18px;
+  box-shadow:0 3px 14px rgba(0,0,0,.08);
+}
+h2{
+  margin-top:0;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+label{
+  display:block;
+  font-weight:600;
+  margin-bottom:7px;
+}
+input,select,button{
+  width:100%;
+  padding:13px;
+  border-radius:10px;
+  border:1px solid #ccd3da;
+  font:inherit;
+}
+button{
+  background:#17212b;
+  color:white;
+  border:0;
+  cursor:pointer;
+  font-weight:600;
+}
+button.secondary{
+  background:#e9eef3;
+  color:#1677c8;
+}
+.buttons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:18px;
+}
+.result{
+  display:none;
+}
+.result.show{
+  display:block;
+}
+.result-box{
+  background:#eef7ff;
+  border-radius:12px;
+  padding:18px;
+  margin-top:12px;
+}
+.big{
+  font-size:28px;
+  font-weight:700;
+}
+.warning{
+  background:#fff5e6;
+  border-left:5px solid #f0a000;
+  padding:14px;
+  border-radius:8px;
+}
+@media(max-width:650px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+  .buttons{
+    grid-template-columns:1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>5510 Emeklilik Hesaplayıcı</h1>
+  <p>Basitleştirilmiş emeklilik hesaplama prototipi</p>
+</header>
+
+<main>
+
+<div class="card">
+<h2>Kişisel Bilgiler</h2>
+
+<div class="grid">
+
+<div>
+<label for="birth">Doğum tarihi</label>
+<input type="date" id="birth">
+</div>
+
+<div>
+<label for="gender">Cinsiyet</label>
+<select id="gender">
+<option value="male">Erkek</option>
+<option value="female">Kadın</option>
+</select>
+</div>
+
+<div>
+<label for="firstDate">İlk sigorta tarihi</label>
+<input type="date" id="firstDate">
+</div>
+
+<div>
+<label for="premium">Toplam prim günü</label>
+<input type="number" id="premium" value="7200" min="0">
+</div>
+
+</div>
+</div>
+
+<div class="card">
+<h2>Prim Kayıtları</h2>
+
+<div class="grid">
+
+<div>
+<label for="year">Yıl</label>
+<input type="number" id="year" value="2026">
+</div>
+
+<div>
+<label for="days">Prim günü</label>
+<input type="number" id="days" value="30" min="0">
+</div>
+
+<div>
+<label for="pek">PEK (TL)</label>
+<input type="number" id="pek" value="100000" min="0">
+</div>
+
+</div>
+
+<div class="buttons">
+<button type="button" id="addRecord">Kaydı ekle</button>
+<button type="button" class="secondary" id="add2026">2026 örnek yılı ekle</button>
+</div>
+
+<button type="button" class="secondary" id="clearRecords" style="margin-top:12px">
+Kayıtları temizle
+</button>
+
+<div id="records" style="margin-top:15px"></div>
+</div>
+
+<div class="card">
+<h2>Ek Bilgiler</h2>
+
+<div class="grid">
+
+<div>
+<label for="borrowing">Borçlanma gün sayısı</label>
+<input type="number" id="borrowing" value="0" min="0">
+</div>
+
+<div>
+<label for="fhzs">FHSZ ilave gün sayısı</label>
+<input type="number" id="fhzs" value="0" min="0">
+</div>
+
+</div>
+
+<p style="color:#68737d">
+FHSZ ve borçlanma alanları bu prototipte ayrı tutulur.
+</p>
+</div>
+
+<div class="buttons">
+<button type="button" id="calculate">HESAPLA</button>
+<button type="button" class="secondary" id="demo">Demo veri yükle</button>
+</div>
+
+<div class="card result" id="result">
+<h2>Hesaplama Sonucu</h2>
+
+<div class="result-box">
+<div>Toplam prim günü</div>
+<div class="big" id="totalDays">0</div>
+</div>
+
+<div class="result-box">
+<div>Emeklilik için kalan prim günü</div>
+<div class="big" id="remainingDays">0</div>
+</div>
+
+<div class="result-box">
+<div>Yaklaşık yaş</div>
+<div class="big" id="ageResult">-</div>
+</div>
+
+<div class="result-box">
+<div>Durum</div>
+<div id="status"></div>
+</div>
+</div>
+
+<div class="card">
+<div class="warning">
+<strong>Uyarı:</strong>
+Bu uygulama bir prototiptir. Resmî SGK tahsis hesabı değildir.
+Kesin emeklilik şartları için SGK mevzuatı ve resmî kaynaklar
+kontrol edilmelidir.
+</div>
+</div>
+
+</main>
+
+<script>
+"use strict";
+
+const records = [];
+
+function $(id){
+  return document.getElementById(id);
+}
+
+function renderRecords(){
+  const box = $("records");
+
+  if(records.length === 0){
+    box.innerHTML = "<p>Henüz prim kaydı eklenmedi.</p>";
+    return;
+  }
+
+  box.innerHTML = records.map((r,i)=>`
+    <div style="
+      padding:12px;
+      margin-bottom:8px;
+      background:#f5f7fa;
+      border-radius:9px;
+    ">
+      <strong>${r.year}</strong> —
+      ${r.days} gün —
+      ${Number(r.pek).toLocaleString("tr-TR")} TL
+      <button
+        type="button"
+        onclick="removeRecord(${i})"
+        style="width:auto;float:right;padding:6px 10px;background:#d9534f">
+        Sil
+      </button>
+    </div>
+  `).join("");
+}
+
+function removeRecord(index){
+  records.splice(index,1);
+  renderRecords();
+}
+
+function addRecord(year,days,pek){
+  records.push({
+    year:Number(year),
+    days:Number(days),
+    pek:Number(pek)
+  });
+  renderRecords();
+}
+
+$("addRecord").addEventListener("click",()=>{
+  const year = $("year").value;
+  const days = $("days").value;
+  const pek = $("pek").value;
+
+  if(!year || !days){
+    alert("Yıl ve prim günü giriniz.");
+    return;
+  }
+
+  addRecord(year,days,pek);
+});
+
+$("add2026").addEventListener("click",()=>{
+  addRecord(2026,30,100000);
+});
+
+$("clearRecords").addEventListener("click",()=>{
+  records.length = 0;
+  renderRecords();
+});
+
+$("demo").addEventListener("click",()=>{
+  $("birth").value = "1980-01-01";
+  $("firstDate").value = "2000-01-01";
+  $("premium").value = 7200;
+  $("gender").value = "male";
+  $("borrowing").value = 0;
+  $("fhzs").value = 0;
+
+  records.length = 0;
+
+  addRecord(2024,360,75000);
+  addRecord(2025,360,90000);
+  addRecord(2026,30,100000);
+});
+
+$("calculate").addEventListener("click",()=>{
+
+  const birthValue = $("birth").value;
+  const premium = Number($("premium").value) || 0;
+  const borrowing = Number($("borrowing").value) || 0;
+  const fhzs = Number($("fhzs").value) || 0;
+
+  if(!birthValue){
+    alert("Lütfen doğum tarihini giriniz.");
+    return;
+  }
+
+  const total = premium + borrowing + fhzs;
+
+  const target = 7200;
+  const remaining = Math.max(0,target-total);
+
+  const birth = new Date(birthValue + "T00:00:00");
+  const today = new Date();
+
+  let age = today.getFullYear() - birth.getFullYear();
+
+  const monthDiff =
+    today.getMonth() - birth.getMonth();
+
+  if(
+    monthDiff < 0 ||
+    (monthDiff === 0 &&
+     today.getDate() < birth.getDate())
+  ){
+    age--;
+  }
+
+  $("totalDays").textContent =
+    total.toLocaleString("tr-TR");
+
+  $("remainingDays").textContent =
+    remaining.toLocaleString("tr-TR");
+
+  $("ageResult").textContent =
+    age + " yaş";
+
+  $("status").textContent =
+    remaining === 0
+      ? "Prim günü açısından 7.200 gün hedefi tamamlanmış görünüyor."
+      : "Prim günü açısından henüz tamamlanmamış görünüyor.";
+
+  $("result").classList.add("show");
+});
+
+renderRecords();
+</script>
+
+</body>
+</html>
